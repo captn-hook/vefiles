@@ -5,6 +5,33 @@
 
 #ifdef CTEST_ENABLE
 
+int test2() {
+    //write a large amount of data 
+    unsigned char block[4096];
+    for (int i = 0; i < 4096; i++) {
+        block[i] = i % 256;
+    }
+
+    for (int i = 0; i < 1000; i++) {
+        bwrite(i, block);
+    }
+
+    //read the data back
+    int return_value = 0;
+    for (int i = 0; i < 1000; i++) {
+        bread(i, block);
+        for (int j = 0; j < 4096; j++) {
+            CTEST_ASSERT(block[j] == j % 256, "block[j] == j % 256");
+            if (block[j] != j % 256) {
+                return_value = -1;
+            }
+        }
+    }
+
+    return return_value;
+}
+
+
 int main() {
 
     image_open("filesys", 1);
@@ -21,6 +48,8 @@ int main() {
     // read, should be 1
     bread(0, block);
     CTEST_ASSERT(block[0] == 1, "block[0] == 1");
+
+    test2();
 
     image_close();
 

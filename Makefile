@@ -22,4 +22,4 @@ clean:
 	rm -f *.o
 
 pristine: clean
-	rm -f $(EXEC) $(LIB)
+	rm -f $(EXEC) $(LIB) filesys
