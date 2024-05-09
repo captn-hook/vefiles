@@ -12,7 +12,7 @@ int find_low_clear_bit(unsigned char x)
 void set_free(unsigned char *block, int num, int set) {
     int byte_num = num / BIT;
     int bit_num = num % BIT;
-    unsigned char mask = 1 << BIT;
+    unsigned char mask = 1 << bit_num;
     if (set) {
         block[byte_num] |= mask;
     } else {

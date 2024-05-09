@@ -1,9 +1,21 @@
 #include <stdio.h>
+
 #include "ctest.h"
+
 #include "image.h"
 #include "block.h"
+#include "free.h"
+#include "inode.h"
 
 #ifdef CTEST_ENABLE
+
+void test1() {
+    int inode_num = ialloc();
+    CTEST_ASSERT(inode_num == 0, "inode_num == 0");
+
+    int block_num = alloc();
+    CTEST_ASSERT(block_num == 0, "block_num == 0");
+}
 
 int test2() {
     //write a large amount of data 
@@ -36,6 +48,8 @@ int main() {
 
     image_open("filesys", 1);
 
+    test1();
+
     // read, should be empty
     unsigned char block[4096];
     bread(0, block);
@@ -63,6 +77,12 @@ int main() {
 int main() {
      
     image_open("filesys", 1);
+
+    int inode_num = ialloc();
+    printf("inode is %d\n", inode_num);
+
+    int block_num = alloc();
+    printf("block is %d\n", block_num);
 
     unsigned char block[4096];
     
