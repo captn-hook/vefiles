@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Werror -Wextra -g -DCTEST_ENABLE
-OBJS = image.o block.o testfs.o
+OBJS = image.o block.o testfs.o free.o
 LIB = libvvsfs.a
 EXEC = testfs
 

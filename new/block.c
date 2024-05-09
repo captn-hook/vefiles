@@ -1,7 +1,3 @@
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include "image.h"
 #include "block.h"
 
 // read
