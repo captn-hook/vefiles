@@ -25,6 +25,14 @@ Write tests to verify everything is working.
 
 [testfs.c](testfs.c) - Tests the file system with ctest.h
 
+[free.c](free.c) - gets free blocks
+
+[free.h](free.h)
+
+[inode.c](inode.c) - saves block info
+
+[inode.h](inode.h)
+
 ### Test
 
 [ctest.h](ctest.h) - Testing framework with CTEST_ASSERT, CTEST_RESULTS CTEST_VERBOSE, CTEST_COLOR, CTEST_EXIT

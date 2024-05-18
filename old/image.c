@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include "block.h"
+#include "image.h"
 
 // File descriptor global 
 int image_fd = -1;
