@@ -44,3 +44,21 @@ void incore_free_all(void) {
         incore[i].ref_count = 0;
     }
 }
+
+void read_inode(struct inode *in, int inode_num) {
+    unsigned char block[BLOCK_SIZE];
+    if (bread(inode_num, block) == NULL) {
+        return;
+    }
+    unpack_inode(block, in);
+    in->inode_num = inode_num;
+}
+
+void write_inode(struct inode *in) {
+    unsigned char block[BLOCK_SIZE];
+    pack_inode(block, in);
+    if (bwrite(in->inode_num, block) < 0) {
+        return;
+    }
+}
+

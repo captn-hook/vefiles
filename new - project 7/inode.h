@@ -3,6 +3,7 @@
 
 #include "block.h"
 #include "free.h"
+#include "pack.h"
 
 #define IMAP_BLOCK 1
 
@@ -33,5 +34,10 @@ struct inode *incore_find(unsigned int inode_num); // This finds an in-core inod
 // It returns a pointer to that in-core inode or NULL if it can't be found.
 
 void incore_free_all(void); // This just sets the ref_count to all in-core inodes to 0. Useful for testing.
+
+void read_inode(struct inode *in, int inode_num); // This takes a pointer to an empty struct inode that you're going to read the data into. The inode_num is the number of the inode you wish to read from disk.
+
+void write_inode(struct inode *in); // This stores the inode data pointed to by in on disk. The inode_num field in the struct holds the number of the inode to be written.
+// You'll have to map that inode number to a block and offset, as per above.
 
 #endif
