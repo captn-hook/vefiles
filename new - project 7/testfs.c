@@ -43,6 +43,24 @@ int test2() {
     return return_value;
 }
 
+void test3() {
+    
+    struct inode *inode = incore_find_free();
+    CTEST_ASSERT(inode != NULL, "inode != NULL");
+
+    inode->ref_count = 1;
+    inode->flags = 1;
+
+    struct inode *inode2 = incore_find(inode->inode_num);
+    CTEST_ASSERT(inode2 != NULL, "inode2 != NULL");
+    CTEST_ASSERT(inode2->flags == 1, "inode2->flags == 1");
+
+    incore_free_all();
+    CTEST_ASSERT(inode->ref_count == 0, "inode->ref_count == 0");
+    CTEST_ASSERT(inode2->ref_count == 0, "inode2->ref_count == 0");
+    
+}
+
 
 int main() {
 

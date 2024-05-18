@@ -1,5 +1,7 @@
 #include "inode.h"
 
+static struct inode incore[MAX_SYS_OPEN_FILES] = {0};
+
 int ialloc(void) {
     // read the inode map
     unsigned char imap[BLOCK_SIZE];
@@ -16,5 +18,29 @@ int ialloc(void) {
             return -1;
         }
         return free_inode;
+    }
+}
+
+struct inode *incore_find_free(void) {
+    for (int i = 0; i < MAX_SYS_OPEN_FILES; i++) {
+        if (incore[i].ref_count == 0) {
+            return &incore[i]; // dereference the pointer to the incore inode
+        }
+    }
+    return NULL;
+}
+
+struct inode *incore_find(unsigned int inode_num) {
+    for (int i = 0; i < MAX_SYS_OPEN_FILES; i++) {
+        if (incore[i].ref_count != 0 && incore[i].inode_num == inode_num) {
+            return &incore[i];
+        }
+    }
+    return NULL;
+}
+
+void incore_free_all(void) {
+    for (int i = 0; i < MAX_SYS_OPEN_FILES; i++) {
+        incore[i].ref_count = 0;
     }
 }
