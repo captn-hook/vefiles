@@ -13,7 +13,6 @@
 
 #define MAX_SYS_OPEN_FILES 64
 
-int ialloc(void); // allocate a previously-free inode in the inode map
 
 struct inode {
     unsigned int size;
@@ -27,6 +26,8 @@ struct inode {
     unsigned int inode_num;  // in-core only
 };
 
+struct inode *ialloc(void); // allocate a previously-free inode in the inode map
+
 struct inode *incore_find_free(void); // This finds the first free in-core inode in the incore array. 
 // It returns a pointer to that in-core inode or NULL if there are no more free in-core inodes.
 
@@ -39,5 +40,10 @@ void read_inode(struct inode *in, int inode_num); // This takes a pointer to an 
 
 void write_inode(struct inode *in); // This stores the inode data pointed to by in on disk. The inode_num field in the struct holds the number of the inode to be written.
 // You'll have to map that inode number to a block and offset, as per above.
+
+struct inode *iget(int inode_num); // Return a pointer to an in-core inode for the given inode number,
+// or NULL on failure.
+
+void iput(struct inode *in); // decrement the reference count on the inode. If it falls to 0, write the inode to disk.
 
 #endif

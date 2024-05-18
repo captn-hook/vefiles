@@ -10,8 +10,9 @@
 #ifdef CTEST_ENABLE
 
 void test1() {
-    int inode_num = ialloc();
-    CTEST_ASSERT(inode_num == 0, "inode_num == 0");
+    struct inode *inode = ialloc();
+    CTEST_ASSERT(inode != NULL, "inode != NULL");
+    CTEST_ASSERT(inode->inode_num == 0, "inode->inode_num == 0");
 
     int block_num = alloc();
     CTEST_ASSERT(block_num == 0, "block_num == 0");
@@ -43,6 +44,33 @@ int test2() {
     return return_value;
 }
 
+void test2andahalf() {  
+    // test read inode and write inode
+    struct inode *inode = incore_find_free();
+    CTEST_ASSERT(inode != NULL, "inode != NULL");
+    
+    inode->size = 100;
+    inode->owner_id = 1;
+    inode->permissions = 2;
+    inode->flags = 3;
+    inode->link_count = 4;
+
+    for (int i = 0; i < INODE_PTR_COUNT; i++) {
+        inode->block_ptr[i] = i;
+    }
+
+    write_inode(inode);
+
+    struct inode *inode2 = incore_find(inode->inode_num);
+    CTEST_ASSERT(inode2 != NULL, "inode2 != NULL");
+    CTEST_ASSERT(inode2->size == 100, "inode2->size == 100");
+    CTEST_ASSERT(inode2->owner_id == 1, "inode2->owner_id == 1");
+    CTEST_ASSERT(inode2->permissions == 2, "inode2->permissions == 2");
+    CTEST_ASSERT(inode2->flags == 3, "inode2->flags == 3");
+    CTEST_ASSERT(inode2->link_count == 4, "inode2->link_count == 4");
+
+}
+
 void test3() {
     
     struct inode *inode = incore_find_free();
@@ -58,7 +86,21 @@ void test3() {
     incore_free_all();
     CTEST_ASSERT(inode->ref_count == 0, "inode->ref_count == 0");
     CTEST_ASSERT(inode2->ref_count == 0, "inode2->ref_count == 0");
-    
+
+}
+
+void test4() {
+    //test iget and iput
+    struct inode *inode = iget(0);
+    CTEST_ASSERT(inode != NULL, "inode != NULL");
+
+    struct inode *inode2 = iget(0);
+    CTEST_ASSERT(inode2 != NULL, "inode2 != NULL");
+    CTEST_ASSERT(inode->ref_count == 2, "inode->ref_count == 2");
+
+    iput(inode);
+    CTEST_ASSERT(inode->ref_count == 1, "inode->ref_count == 1");
+
 }
 
 
@@ -82,6 +124,10 @@ int main() {
     CTEST_ASSERT(block[0] == 1, "block[0] == 1");
 
     test2();
+
+    test3();
+
+    test4();
 
     image_close();
 

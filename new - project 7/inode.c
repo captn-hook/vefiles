@@ -2,23 +2,37 @@
 
 static struct inode incore[MAX_SYS_OPEN_FILES] = {0};
 
-int ialloc(void) {
+struct inode *ialloc(void) {
     // read the inode map
     unsigned char imap[BLOCK_SIZE];
     if (bread(IMAP_BLOCK, imap) == NULL) {
-        return -1;
+        return NULL;
     }
 
-    int free_inode = find_free(imap);
-    if (free_inode == -1) {
-        return -1;
-    } else {
-        set_free(imap, free_inode, 1);
-        if (bwrite(IMAP_BLOCK, imap) < 0) {
-            return -1;
-        }
-        return free_inode;
+    struct inode *in = incore_find_free();
+    if (in == NULL) {
+        return NULL;
     }
+
+    set_free(imap, in->inode_num, 0);
+    if (bwrite(IMAP_BLOCK, imap) < 0) {
+        return NULL;
+    }
+
+    // the inode map
+    in->size = 0;
+    in->owner_id = 0;
+    in->permissions = 0;
+    in->flags = 0;
+    in->link_count = 0;
+    for (int i = 0; i < INODE_PTR_COUNT; i++) {
+        in->block_ptr[i] = 0;
+    }
+    in->inode_num = find_free(imap);
+
+    write_inode(in);
+
+    return in; // ref
 }
 
 struct inode *incore_find_free(void) {
@@ -62,3 +76,33 @@ void write_inode(struct inode *in) {
     }
 }
 
+struct inode *iget(int inode_num) {
+    struct inode *in = incore_find(inode_num);
+    if (in != NULL) {
+        in->ref_count++;
+        return in;
+    }
+
+    in = incore_find_free();
+    if (in == NULL) {
+        return NULL;
+    }
+
+    read_inode(in, inode_num);
+    in->ref_count = 1;
+    in->inode_num = inode_num; // set in-core data
+
+    return in;
+}
+
+void iput(struct inode *in) {
+    if (in->ref_count == 0) {
+        return;
+    }
+
+    in->ref_count--;
+
+    if (in->ref_count == 0) {
+        write_inode(in);
+    }
+}
