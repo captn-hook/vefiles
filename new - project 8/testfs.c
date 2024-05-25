@@ -6,6 +6,7 @@
 #include "block.h"
 #include "free.h"
 #include "inode.h"
+#include "dir.h"
 
 #ifdef CTEST_ENABLE
 
@@ -15,7 +16,7 @@ void test1() {
     CTEST_ASSERT(inode->inode_num == 0, "inode->inode_num == 0");
 
     int block_num = alloc();
-    CTEST_ASSERT(block_num == 0, "block_num == 0");
+    CTEST_ASSERT(block_num == 1, "block_num == 1");
 }
 
 int test2() {
@@ -103,10 +104,28 @@ void test4() {
 
 }
 
+void test5() {
+    //test dir
+
+    struct directory *dir;
+    struct directory_entry ent;
+
+    dir = directory_open(0);
+    CTEST_ASSERT(dir != NULL, "dir != NULL");
+
+    while (directory_get(dir, &ent) == 0) {
+        CTEST_ASSERT(0, "directory_get");
+    }
+
+    ls();
+
+    directory_close(dir);    
+}
+
 
 int main() {
 
-    image_open("filesys", 1);
+    makefs("filesys", 1);
 
     test1();
 
@@ -129,7 +148,7 @@ int main() {
 
     test4();
 
-    image_close();
+    closefs();
 
     CTEST_RESULTS();
 
