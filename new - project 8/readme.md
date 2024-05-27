@@ -68,3 +68,12 @@ use Unix syscalls like open(), close(), read(), write(), and lseek().
 # Tests
 
 # Notes
+uhh
+there is something deeply wrong with my file system
+and i have no idea what it is
+
+the buffere keeps ovverrunning, leading to stack smashing or segfaults
+i have no idea why
+and i get multiple inode 0's
+which i do not really know how to gaurd against, while i prevent writing inodes with the same number, i believe it is a symptom of a larger problem
+i need help
