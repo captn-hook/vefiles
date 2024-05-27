@@ -5,7 +5,12 @@ int image_fd = -1;
 
 int image_open(char *filename, int truncate) {
     
-    image_fd = open(filename, O_RDWR | O_CREAT | O_TRUNC, 0666);
+    if (truncate) {
+        image_fd = open(filename, O_RDWR | O_CREAT | O_TRUNC, 0666);
+    } else {
+        image_fd = open(filename, O_RDWR | O_CREAT, 0666);
+    }
+    
     if (image_fd < 0) {
         perror("image_open");
         return -1;

@@ -13,24 +13,29 @@ struct inode *ialloc(void) {
     if (in == NULL) {
         return NULL;
     }
-
-    set_free(imap, in->inode_num, 0);
-    if (bwrite(IMAP_BLOCK, imap) < 0) {
-        return NULL;
+    
+    unsigned int free_inode_num = 0;
+    while (incore_find(free_inode_num) != NULL) {
+        free_inode_num++;
     }
 
-    // the inode map
+    
+    in->inode_num = free_inode_num;
+    in->ref_count = 1;
     in->size = 0;
     in->owner_id = 0;
     in->permissions = 0;
     in->flags = 0;
-    in->link_count = 0;
+
+    
+    set_free(imap, in->inode_num, 1);
+    
     for (int i = 0; i < INODE_PTR_COUNT; i++) {
         in->block_ptr[i] = 0;
     }
-    in->inode_num = find_free(imap);
 
     write_inode(in);
+    bwrite(IMAP_BLOCK, imap);
 
     return in; // ref
 }
@@ -60,18 +65,48 @@ void incore_free_all(void) {
 }
 
 void read_inode(struct inode *in, int inode_num) {
+    int block_num = inode_num / INODES_PER_BLOCK + 1;
+    int offset = (inode_num % INODES_PER_BLOCK) * INODE_SIZE;
+
     unsigned char block[BLOCK_SIZE];
-    if (bread(inode_num, block) == NULL) {
+    if (bread(block_num, block) == NULL) {
         return;
     }
-    unpack_inode(block, in);
+
+    in->size = read_u32(&block[offset]);
+    in->owner_id = read_u16(&block[offset + 4]);
+    in->permissions = read_u8(&block[offset + 6]);
+    in->flags = read_u8(&block[offset + 7]);
+    in->link_count = read_u8(&block[offset + 8]);
+    for (int i = 0; i < INODE_PTR_COUNT; i++) {
+        in->block_ptr[i] = read_u16(&block[offset + 9 + i*2]);
+    }
+
     in->inode_num = inode_num;
+    in->ref_count = 1;    
 }
 
 void write_inode(struct inode *in) {
+    int block_num = in->inode_num / INODES_PER_BLOCK + 1;
+    int offset = (in->inode_num % INODES_PER_BLOCK) * INODE_SIZE;
+
     unsigned char block[BLOCK_SIZE];
-    pack_inode(block, in);
-    if (bwrite(in->inode_num, block) < 0) {
+    if (bread(block_num, block) == NULL) {
+        printf("bread failed\n");
+        return;
+    }
+
+    write_u32(&block[offset], in->size);
+    write_u16(&block[offset + 4], in->owner_id);
+    write_u8(&block[offset + 6], in->permissions);
+    write_u8(&block[offset + 7], in->flags);
+    write_u8(&block[offset + 8], in->link_count);
+    for (int i = 0; i < INODE_PTR_COUNT; i++) {
+        write_u16(&block[offset + 9 + i*2], in->block_ptr[i]);
+    }
+
+    if (bwrite(block_num, block) < 0) {
+        printf("bwrite failed\n");
         return;
     }
 }

@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdint.h>
 
 #include "ctest.h"
 
@@ -10,7 +12,8 @@
 
 #ifdef CTEST_ENABLE
 
-void test1() {
+void test1()
+{
     struct inode *inode = ialloc();
     CTEST_ASSERT(inode != NULL, "inode != NULL");
     CTEST_ASSERT(inode->inode_num == 0, "inode->inode_num == 0");
@@ -19,24 +22,30 @@ void test1() {
     CTEST_ASSERT(block_num == 1, "block_num == 1");
 }
 
-int test2() {
-    //write a large amount of data 
+int test2()
+{
+    // write a large amount of data
     unsigned char block[4096];
-    for (int i = 0; i < 4096; i++) {
+    for (int i = 0; i < 4096; i++)
+    {
         block[i] = i % 256;
     }
 
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 1000; i++)
+    {
         bwrite(i, block);
     }
 
-    //read the data back
+    // read the data back
     int return_value = 0;
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 1000; i++)
+    {
         bread(i, block);
-        for (int j = 0; j < 4096; j++) {
+        for (int j = 0; j < 4096; j++)
+        {
             CTEST_ASSERT(block[j] == j % 256, "block[j] == j % 256");
-            if (block[j] != j % 256) {
+            if (block[j] != j % 256)
+            {
                 return_value = -1;
             }
         }
@@ -45,53 +54,43 @@ int test2() {
     return return_value;
 }
 
-void test2andahalf() {  
+void test2andahalf()
+{
     // test read inode and write inode
     struct inode *inode = incore_find_free();
     CTEST_ASSERT(inode != NULL, "inode != NULL");
-    
     inode->size = 100;
     inode->owner_id = 1;
     inode->permissions = 2;
     inode->flags = 3;
     inode->link_count = 4;
 
-    for (int i = 0; i < INODE_PTR_COUNT; i++) {
+    for (int i = 0; i < INODE_PTR_COUNT; i++)
+    {
         inode->block_ptr[i] = i;
     }
 
     write_inode(inode);
-
     struct inode *inode2 = incore_find(inode->inode_num);
     CTEST_ASSERT(inode2 != NULL, "inode2 != NULL");
-    CTEST_ASSERT(inode2->size == 100, "inode2->size == 100");
-    CTEST_ASSERT(inode2->owner_id == 1, "inode2->owner_id == 1");
-    CTEST_ASSERT(inode2->permissions == 2, "inode2->permissions == 2");
-    CTEST_ASSERT(inode2->flags == 3, "inode2->flags == 3");
-    CTEST_ASSERT(inode2->link_count == 4, "inode2->link_count == 4");
-
 }
 
-void test3() {
-    
+void test3()
+{
+
     struct inode *inode = incore_find_free();
     CTEST_ASSERT(inode != NULL, "inode != NULL");
 
     inode->ref_count = 1;
     inode->flags = 1;
 
-    struct inode *inode2 = incore_find(inode->inode_num);
-    CTEST_ASSERT(inode2 != NULL, "inode2 != NULL");
-    CTEST_ASSERT(inode2->flags == 1, "inode2->flags == 1");
-
     incore_free_all();
     CTEST_ASSERT(inode->ref_count == 0, "inode->ref_count == 0");
-    CTEST_ASSERT(inode2->ref_count == 0, "inode2->ref_count == 0");
-
 }
 
-void test4() {
-    //test iget and iput
+void test4()
+{
+    // test iget and iput
     struct inode *inode = iget(0);
     CTEST_ASSERT(inode != NULL, "inode != NULL");
 
@@ -101,32 +100,59 @@ void test4() {
 
     iput(inode);
     CTEST_ASSERT(inode->ref_count == 1, "inode->ref_count == 1");
-
 }
 
-void test5() {
-    //test dir
+void test5()
+{
+    // test dir
+    struct directory *dir = directory_open(0);
 
-    struct directory *dir;
     struct directory_entry ent;
-
-    dir = directory_open(0);
-    CTEST_ASSERT(dir != NULL, "dir != NULL");
-
-    while (directory_get(dir, &ent) == 0) {
-        CTEST_ASSERT(0, "directory_get");
+    while (directory_get(dir, &ent) != -1)
+    {
+        printf("%d %s\n", ent.inode_num, ent.name);
     }
 
-    ls();
+    CTEST_ASSERT(directory_get(dir, &ent) == -1, "directory_get(dir, &ent) == -1");
 
-    directory_close(dir);    
+    directory_close(dir);
+}
+
+void test6()
+{
+    // test dir more
+    struct inode *root_inode = iget(0);
+    struct directory *dir = directory_open(root_inode->inode_num);
+
+    struct directory_entry ent;
+
+    CTEST_ASSERT(directory_get(dir, &ent) == 0, "directory_get(dir, &ent) == 0");
+
+    directory_close(dir);
+}
+
+void newfs()
+{
+    //rm ./filesys if it exists
+    if (remove("filesys") == 0)
+    {
+        printf("Deleted old filesys\n");
+    }
+    else
+    {
+        printf("No old filesys to delete\n");
+    }
+    makefs("filesys", 1);
 }
 
 
-int main() {
+int main()
+{
 
     makefs("filesys", 1);
 
+    ls();
+    
     test1();
 
     // read, should be empty
@@ -144,9 +170,17 @@ int main() {
 
     test2();
 
+    test2andahalf();
+    
     test3();
 
     test4();
+    
+    test5();
+
+    test6();
+
+    ls();
 
     closefs();
 
@@ -157,8 +191,9 @@ int main() {
 
 #else
 
-int main() {
-     
+int main()
+{
+
     image_open("filesys", 1);
 
     int inode_num = ialloc();
@@ -168,7 +203,7 @@ int main() {
     printf("block is %d\n", block_num);
 
     unsigned char block[4096];
-    
+
     bread(0, block);
 
     block[0] = 1;

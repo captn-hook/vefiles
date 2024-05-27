@@ -13,6 +13,8 @@
 
 #define MAX_SYS_OPEN_FILES 64
 
+#define INODE_SIZE 64
+
 
 struct inode {
     unsigned int size;
@@ -24,7 +26,7 @@ struct inode {
 
     unsigned int ref_count;  // in-core only
     unsigned int inode_num;  // in-core only
-};
+} __attribute__((packed));
 
 struct inode *ialloc(void); // allocate a previously-free inode in the inode map
 

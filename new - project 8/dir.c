@@ -9,22 +9,22 @@ int makefs(char *filename, int truncate) {
     }
 
     struct inode *root_inode = ialloc();
-    int inode_num = root_inode->inode_num;
     int block_num = alloc();
 
+    root_inode->inode_num = 0;
     root_inode->flags = 2;
-    root_inode->size = 64;
+    root_inode->size = DIR_SIZE * 2;
     root_inode->block_ptr[0] = block_num;
 
-    unsigned char block[BLOCK_SIZE];
+    unsigned char block[BLOCK_SIZE] = {0};
 
-    write_u16(block, inode_num);
-    strcpy((char *) (block + 2), "."); //current directory
-    write_u16(block + 32, inode_num);
-    strcpy((char *) (block + 34), ".."); //parent directory
+    // add . and .. entries to the root directory
+    write_u16(block, root_inode->inode_num);
+    strcpy((char *) (block + INODE_ENT), ".\0");
+    write_u16(block + DIR_SIZE, root_inode->inode_num);
+    strcpy((char *) (block + INODE_ENT + DIR_SIZE), "..\0");
 
     bwrite(block_num, block);
-
     iput(root_inode);
 
     return 0;
@@ -48,29 +48,46 @@ void ls(void) {
 }
 
 int directory_get(struct directory *dir, struct directory_entry *ent) {
-    unsigned char block[BLOCK_SIZE];
-    struct inode *inode = dir->inode;
-
-    if (dir->offset >= inode->size) {
-        return -1; //end of directory
+    if (dir->offset + DIR_SIZE > dir->inode->size) {
+        return -1;
     }
 
-    bread(inode->block_ptr[0], block); 
-    memcpy(ent, block + dir->offset, sizeof(struct directory_entry)); // move the data from the block into the struct directory_entry
-    dir->offset += sizeof(struct directory_entry); // move the offset to the next entry
+    int data_block_index = dir->offset / BLOCK_SIZE;
+
+    int data_block_num = dir->inode->block_ptr[data_block_index];
+
+    unsigned char block[BLOCK_SIZE] = {0};
+    bread(data_block_num, block);
+
+    int offset_in_block = dir->offset % BLOCK_SIZE;
+
+    ent->inode_num = read_u16(block + offset_in_block);
+
+    // idk man this is hacky
+    char name[NAME_MAX + 1];
+    strncpy(name, (char *) (block + offset_in_block + INODE_ENT), NAME_MAX);
+    name[NAME_MAX] = '\0';
+    strcpy(ent->name, name);
+    
+    dir->offset += DIR_SIZE;
 
     return 0;
 }
-
 void directory_close(struct directory *d) {
     iput(d->inode);
     free(d);
 }
 
 struct directory *directory_open(int inode_num) {
-    struct directory *dir = malloc(sizeof(struct directory)); // allocate memory for the struct directory
-    dir->inode = iget(inode_num); // get the inode for the directory
-    dir->offset = 0; // set the offset to 0
-    
+    struct inode *inode = iget(inode_num);
+    if (inode == NULL) {
+        return NULL;
+    }
+
+    struct directory *dir = malloc(sizeof(struct directory));
+
+    dir->inode = inode;
+    dir->offset = 0;
+
     return dir;
 }

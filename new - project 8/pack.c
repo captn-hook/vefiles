@@ -58,6 +58,8 @@ void pack_inode(void *addr, struct inode *in) {
     for (int i = 0; i < INODE_PTR_COUNT; i++) { // always writes 16 block pointers
         write_u16(addr + 9 + i*2, in->block_ptr[i]);
     }
+
+    printf("Packed inode: size: %d, owner_id: %d, permissions: %d, flags: %d, link_count: %d\n", in->size, in->owner_id, in->permissions, in->flags, in->link_count);
 }
 
 void unpack_inode(void *addr, struct inode *in) {
@@ -69,4 +71,6 @@ void unpack_inode(void *addr, struct inode *in) {
     for (int i = 0; i < INODE_PTR_COUNT; i++) {
         in->block_ptr[i] = read_u16(addr + 9 + i*2); // maffs
     }
+
+    printf("Unpacked inode: size: %d, owner_id: %d, permissions: %d, flags: %d, link_count: %d\n", in->size, in->owner_id, in->permissions, in->flags, in->link_count);
 }

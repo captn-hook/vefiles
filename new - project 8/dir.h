@@ -5,14 +5,18 @@
 #include "image.h"
 #include "pack.h"
 
+#define INODE_ENT 2
+#define DIR_SIZE 32
+#define NAME_MAX 16
+
 struct directory {
     struct inode *inode;
     unsigned int offset;
 };
 
 struct directory_entry {
-    unsigned int inode_num;
-    char name[16];
+    unsigned int inode_num; // 2 bytes
+    char name[NAME_MAX]; // 16 bytes
 };
 
 int directory_get(struct directory *dir, struct directory_entry *ent); //This function takes a struct directory * 
