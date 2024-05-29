@@ -9,16 +9,13 @@ struct inode *ialloc(void) {
         return NULL;
     }
 
-    struct inode *in = incore_find_free();
+    unsigned int free_inode_num = find_free(imap);
+
+    struct inode *in = iget(free_inode_num);
     if (in == NULL) {
         return NULL;
     }
     
-    unsigned int free_inode_num = 0;
-    while (incore_find(free_inode_num) != NULL) {
-        free_inode_num++;
-    }
-
     
     in->inode_num = free_inode_num;
     in->ref_count = 1;
@@ -140,4 +137,14 @@ void iput(struct inode *in) {
     if (in->ref_count == 0) {
         write_inode(in);
     }
+}
+
+void print_inodes(void) {
+    printf("inodes:\n");
+    for (int i = 0; i < MAX_SYS_OPEN_FILES; i++) {
+        if (incore[i].ref_count != 0) {
+            printf("inode %d: size %d, owner %d, permissions %d, flags %d, link count %d, ref count %d\n", incore[i].inode_num, incore[i].size, incore[i].owner_id, incore[i].permissions, incore[i].flags, incore[i].link_count, incore[i].ref_count);
+        }
+    }
+    printf("------------    \n");
 }

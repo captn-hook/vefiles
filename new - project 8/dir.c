@@ -15,6 +15,7 @@ int makefs(char *filename, int truncate) {
     root_inode->flags = 2;
     root_inode->size = DIR_SIZE * 2;
     root_inode->block_ptr[0] = block_num;
+    root_inode->ref_count = 1; // ref count doesnt always work
 
     unsigned char block[BLOCK_SIZE] = {0};
 
@@ -35,6 +36,7 @@ void closefs(void) {
 }
 
 void ls(void) {
+    printf("ls:\n");
     struct directory *dir;
     struct directory_entry ent;
 
@@ -45,6 +47,7 @@ void ls(void) {
     }
 
     directory_close(dir);
+    printf("------------    \n");
 }
 
 int directory_get(struct directory *dir, struct directory_entry *ent) {

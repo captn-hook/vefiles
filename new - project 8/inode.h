@@ -48,4 +48,5 @@ struct inode *iget(int inode_num); // Return a pointer to an in-core inode for t
 
 void iput(struct inode *in); // decrement the reference count on the inode. If it falls to 0, write the inode to disk.
 
+void print_inodes(void); // Print out the in-core inode table. Useful for debugging.
 #endif

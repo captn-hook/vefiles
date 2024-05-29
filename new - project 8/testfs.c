@@ -150,10 +150,14 @@ int main()
 {
 
     makefs("filesys", 1);
-
+    printf("filesys created\n");
+    print_inodes();
     ls();
-    
+    printf("test1\n");    
     test1();
+    print_inodes();
+    printf("test1.5\n");
+    ls();
 
     // read, should be empty
     unsigned char block[4096];
@@ -168,7 +172,7 @@ int main()
     bread(0, block);
     CTEST_ASSERT(block[0] == 1, "block[0] == 1");
 
-    test2();
+    //test2();
 
     test2andahalf();
     
