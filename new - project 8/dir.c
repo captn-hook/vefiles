@@ -9,6 +9,7 @@ int makefs(char *filename, int truncate) {
     }
 
     struct inode *root_inode = ialloc();
+    
     int block_num = alloc();
 
     root_inode->inode_num = 0;
