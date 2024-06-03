@@ -8,6 +8,7 @@
 #define INODE_ENT 2
 #define DIR_SIZE 32
 #define NAME_MAX 16
+#define ROOT_INODE_NUM 0
 
 struct directory {
     struct inode *inode;
@@ -32,5 +33,13 @@ void ls(void);
 int makefs(char *filename, int truncate);
 
 void closefs(void);
+
+char *get_dirname(const char *path, char *dirname);
+
+char *get_basename(const char *path, char *basename);
+
+struct inode *namei(char *path);
+
+int directory_make(char *path);
 
 #endif

@@ -131,6 +131,20 @@ void test6()
     directory_close(dir);
 }
 
+void test7()
+{
+    // test directory_make
+    int return_value = directory_make("/test");
+
+    CTEST_ASSERT(return_value == 0, "return_value == 0");
+
+    struct inode *inode = namei("/test");
+    CTEST_ASSERT(inode != NULL, "inode != NULL");
+
+    CTEST_ASSERT(directory_make("/test") == -1, "directory_make(/test) == -1");
+}
+    
+
 void newfs()
 {
     //rm ./filesys if it exists
@@ -183,6 +197,8 @@ int main()
     test5();
 
     test6();
+
+    test7();
 
     ls();
 
